@@ -1,0 +1,139 @@
+AARYA Voice-Controlled AI Assistant Module
+Overview
+AARYA is a voice-activated AI assistant designed to respond to voice commands and interact with users by answering technical queries and performing various tasks. It listens for the wake word "AARYA" and responds to commands with pre-programmed responses or queries using OpenAI's ChatGPT.
+
+The module is designed to:
+
+Activate upon hearing the wake word "AARYA."
+Respond with a custom self-introduction.
+Answer time-based queries.
+Provide information about its capabilities.
+Handle general questions by interacting with OpenAI's ChatGPT API.
+Key Features
+Voice-activated assistant: Listens for the wake word "AARYA" and responds to voice commands.
+Pre-programmed responses:
+Self-introduction.
+Telling the time.
+Describing its capabilities.
+Dynamic responses: Uses OpenAI's GPT API for responding to any other custom queries.
+Text-to-speech (TTS): Converts text responses into audio that the assistant speaks aloud.
+Requirements
+Hardware
+Raspberry Pi (with microphone support)
+USB microphone or any microphone compatible with Raspberry Pi
+Speaker or audio output device
+Software Dependencies
+To run the AARYA module, you need to install several libraries:
+
+SpeechRecognition: For voice-to-text processing.
+gTTS: For converting text to speech.
+playsound: To play the generated speech audio.
+OpenAI API: For processing non-predefined queries using ChatGPT.
+Install the required Python packages with the following commands:
+
+> pip install SpeechRecognition pyaudio gtts playsound requests
+
+Installation and Setup
+Clone or Copy the Code: Copy the provided Python script (AARYA_Module.py) to your Raspberry Pi or local system.
+
+Set Up OpenAI API Key:
+
+Sign up at OpenAI and get your API key.
+Replace the placeholder 'your-openai-api-key-here' in the script with your actual API key.
+Run the Module: Execute the script using Python 3:
+
+> python3 AARYA_Module.py
+
+Code Explanation
+
+1. Wake Word Detection
+   The assistant waits for the wake word "AARYA" to activate. This is done using the Google Speech Recognition engine for simplicity, though more sophisticated wake word detection libraries (like Snowboy or Porcupine) can be integrated for production.
+
+wake_word = recognizer.recognize_google(audio).lower()
+if "aarya" in wake_word: # Proceed with listening for a command
+
+2. Voice Commands
+   Once activated, AARYA listens for specific commands:
+
+Self-introduction: If the user says "introduce yourself," AARYA will respond: "Hello, I am AARYA. I work on AI modules designed by Mandeep Singh Pawar."
+
+if "introduce yourself" in command.lower():
+intro = "Hello, I am AARYA. I work on AI modules designed by Mandeep Singh Pawar."
+speak_text(intro)
+
+Current time: If the user asks for the time, AARYA responds with the current time.
+
+elif "time" in command.lower():
+time_reply = get_time()
+speak_text(time_reply)
+
+Capabilities: If the user asks "What can you do?", AARYA provides a list of its abilities: "Hello! I am AARYA, your personal AI assistant. I can help you with tasks such as telling the time, answering technical queries, and more. Ask me anything!"
+
+elif "what can you do" in command.lower():
+features = ("Hello! I am AARYA, your personal AI assistant. I can help you with tasks such as telling the time, answering technical queries, and more. Ask me anything!")
+speak_text(features)
+
+3.  ChatGPT Integration
+    For any other general queries, AARYA sends the voice command to the ChatGPT API and fetches a response, which it then speaks aloud.
+
+    def send_instruction_to_chatgpt(instruction):
+    url = "https://api.openai.com/v1/chat/completions"
+    headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"Bearer {OPENAI_API_KEY}"
+    }
+    payload = {
+    "model": "gpt-4",
+    "messages": [
+    {"role": "system", "content": "You are AARYA, an AI assistant designed by Mandeep Singh Pawar."},
+    {"role": "user", "content": instruction}
+    ],
+    "temperature": 0.7,
+    "max_tokens": 150
+    }
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+
+    if response.status_code == 200:
+    response_data = response.json()
+    reply = response_data['choices'][0]['message']['content']
+    return reply
+    else:
+    return f"Error: {response.status_code}, {response.text}"
+
+    4.  Text-to-Speech (TTS)
+        AARYA converts the response text into speech using the Google Text-to-Speech (gTTS) library and plays it via the playsound module.
+
+              def speak_text(text):
+              tts = gTTS(text=text, lang='en')
+              tts_file = "response.mp3"
+              tts.save(tts_file)
+              playsound.playsound(tts_file)
+              os.remove(tts_file)
+
+
+              Example Usage
+
+        Wake up AARYA: Say "AARYA" to activate the module.
+        Self-introduction:
+        User: "Hey AARYA, introduce yourself."
+        AARYA: "Hello, I am AARYA. I work on AI modules designed by Mandeep Singh Pawar."
+        Ask the time:
+        User: "Hey AARYA, please tell me the time."
+        AARYA: "The current time is 03:45 PM."
+        Capabilities:
+        User: "Hey AARYA, what can you do?"
+        AARYA: "Hello! I am AARYA, your personal AI assistant. I can help you with tasks such as telling the time, answering technical queries, and more."
+        General query:
+        User: "Hey AARYA, what is the capital of France?"
+        AARYA (via ChatGPT): "The capital of France is Paris."
+        Limitations
+        The module currently relies on Google Speech Recognition for wake word detection, which may not be ideal for all environments. You can integrate more robust wake word detection engines for better performance.
+        Ensure the system has an active internet connection for both Google Speech Recognition and ChatGPT API requests.
+        Future Enhancements
+        Custom Wake Word Detection: Integrate a wake word engine like Snowboy or Porcupine for better offline detection.
+        More Functionality: Add more pre-programmed technical responses (like telling the weather, setting reminders, etc.).
+        Improved TTS Quality: Use more advanced TTS engines like Google Cloud Text-to-Speech for improved voice synthesis.
+        License
+        This project is open-source and can be modified as needed for personal use. Feel free to expand upon the functionality and enhance the module!
+
+        For any queries or technical issues, you can reach out to Mandeep Singh Pawar, the designer of AARYA AI module, for further guidance or improvements.
